@@ -8,6 +8,13 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 from src.utils.search import search_ticker_info
+from statsmodels.tsa.seasonal import seasonal_decompose
+from plotly.subplots import make_subplots
+from sktime.forecasting.arima import AutoARIMA
+from sktime.forecasting.base import ForecastingHorizon
+from sktime.forecasting.fbprophet import Prophet
+from sktime.forecasting.model_selection import temporal_train_test_split
+from sktime.performance_metrics.forecasting import mean_absolute_percentage_error
 
 ### Variáveis Globais
 OPEN_API_KEY = st.secrets["OPENAI_API_KEY"]
@@ -42,6 +49,9 @@ def preprocess_data(data):
 
     # Set date as index
     data.set_index('date', inplace=True)
+    
+    data = data.asfreq('B')  # 'B' para dias úteis
+    data['adj_close'] = data['adj_close'].fillna(method='ffill')
 
     # Colunas adicionais para análise
     data['year'] = data.index.year
@@ -82,6 +92,74 @@ def plot_by_year(data):
     
     return fig
 
+def decomposition(data):
+    result = seasonal_decompose(data['adj_close'], model='multiplicative', period=365)
+    
+    fig = make_subplots(rows=4, cols=1, shared_xaxes=True, subplot_titles=['Preço de Fechamento', 'Tendência', 'Sazonalidade', 'Resíduo'])
+
+    fig.add_trace(go.Scatter(x=result.observed.index, y=result.observed, mode='lines', name='Observed'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=result.trend.index, y=result.trend, mode='lines', name='Trend'), row=2, col=1)
+    fig.add_trace(go.Scatter(x=result.seasonal.index, y=result.seasonal, mode='lines', name='Seasonal'), row=3, col=1)
+    fig.add_trace(go.Scatter(x=result.resid.index, y=result.resid, mode='lines', name='Residual'), row=4, col=1)
+
+    fig.update_layout(height=800, title_text='Decomposition of Time Series', showlegend=False)
+    
+    return fig
+
+def auto_arima(data, periods):
+    model = AutoARIMA(n_fits=10)
+    fh = ForecastingHorizon(np.arange(1, periods + 1), is_relative=True)
+    
+    model.fit(data)
+    y_pred = model.predict(fh)
+    
+    return y_pred
+
+def prophet(data, periods):
+    model = Prophet()
+    fh = ForecastingHorizon(np.arange(1, periods + 1), is_relative=True)
+    
+    model.fit(data)
+    y_pred = model.predict(fh)
+    
+    return y_pred
+
+def forecast(data, model_name='auto_arima', evaluate=False, periods=None):
+    models = {
+        'auto_arima': AutoARIMA(n_fits=10),
+        'prophet': Prophet(daily_seasonality=True)
+    }
+    
+    model = models[model_name]
+    
+    if evaluate:
+        y_train, y_test = temporal_train_test_split(data, test_size=0.2)
+        fh = ForecastingHorizon(np.arange(1, len(y_test) + 1), is_relative=True)
+    
+        model.fit(y_train)
+        y_pred = model.predict(fh)
+        
+        mape = mean_absolute_percentage_error(y_test, y_pred)
+        
+        return mape
+    else:
+        fh = ForecastingHorizon(np.arange(1, periods + 1), is_relative=True)
+        
+        model.fit(data)
+        y_pred = model.predict(fh)
+        
+        return y_pred
+
+def plot_forecast(data, y_pred):
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(x=data.index, y=data, mode='lines', name='Observado'))
+    fig.add_trace(go.Scatter(x=y_pred.index, y=y_pred, mode='lines', name='Previsão'))
+    
+    fig.update_layout(xaxis_title='Data', yaxis_title='Preço')
+    
+    return fig
+
 ### App
 st.title('Previsão de Preços de Ações')
 
@@ -94,31 +172,43 @@ with col1:
     tickers.insert(0, 'Selecione um ticker')
     ticker = st.selectbox('Selecione o Ticker da Ação', tickers)
 
-col1, col2, col3 = st.columns(3)
-if ticker != 'Selecione um ticker':
-        ### Carregando dados
-        data = load_data(ticker)
-        data = preprocess_data(data)
+with st.spinner("Carregando pesquisas e previsões..."):
+    ### Análise Fundamentalista
+    if ticker != 'Selecione um ticker':
+        st.markdown('## Análise Fundamentalista')
+        st.markdown(search_ticker_info(ticker))
 
-        col1, col2, col3 = st.columns(3)
-        ### Análise Fundamentalista
-        # with col1:
-        #     st.markdown('## Análise Fundamentalista')
-        #     st.markdown(search_ticker_info(ticker))
+    col1, col2, col3 = st.columns(3)
+    if ticker != 'Selecione um ticker':
+            ### Carregando dados
+            data = load_data(ticker)
+            data = preprocess_data(data)            
 
-        ### Análise Técnica
-        with col2:
-            st.markdown(f'## Análise Técnica')
+            col1, col2= st.columns(2)
+            ### Análise Técnica
+            with col1:
+                st.markdown(f'## Análise Técnica')
 
-            st.markdown(f'### Preço de Fechamento da Ação')
-            fig = px.line(data, x=data.index, y='adj_close', labels={'adj_close': 'Preço', 'date': 'Data'})
-            st.plotly_chart(fig)
+                st.markdown('### Preço de Fechamento da Ação')
+                st.plotly_chart(decomposition(data))
 
-            st.markdown('### Preço por Ano')
-            st.plotly_chart(plot_by_year(data))
+                st.markdown('### Preço por Ano')
+                st.plotly_chart(plot_by_year(data))
 
-        ### Previsão
-        with col3:
-            st.markdown('## Previsão')
+            ### Previsão
+            with col2:
+                st.markdown('## Previsão')
 
-            periods = st.number_input('Entre o número de dias para previsão', min_value=1, max_value=1000, value=30)
+                periods = st.number_input('Entre o número de dias para previsão', min_value=1, max_value=1000, value=30)
+                
+                st.markdown('### Auto-ARIMA')
+                mape = forecast(data['adj_close'], model_name='auto_arima', evaluate=True)
+                st.write(f'MAPE: {mape:.2f}%')
+                y_pred_arima = forecast(data['adj_close'][-365:], model_name='auto_arima', periods=periods)
+                st.plotly_chart(plot_forecast(data['adj_close'][-365:], y_pred_arima))
+                
+                st.markdown('### Prophet')
+                mape = forecast(data['adj_close'], model_name='prophet', evaluate=True)
+                st.write(f'MAPE: {mape:.2f}%')
+                y_pred_prophet = forecast(data['adj_close'][-365:], model_name='prophet', periods=periods)
+                st.plotly_chart(plot_forecast(data['adj_close'][-365:], y_pred_prophet))
