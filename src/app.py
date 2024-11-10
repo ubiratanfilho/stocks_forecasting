@@ -19,8 +19,10 @@ from xgboost import XGBRegressor
 from sktime.forecasting.compose import make_reduction
 
 ### Variáveis Globais
-OPEN_API_KEY = st.secrets["OPENAI_API_KEY"]
-SERPAPI_API_KEY = st.secrets["SERPAPI_API_KEY"]
+# OPEN_API_KEY = st.secrets["OPENAI_API_KEY"]
+# SERPAPI_API_KEY = st.secrets["SERPAPI_API_KEY"]
+OPEN_API_KEY = None
+SERPAPI_API_KEY = None
 
 st.set_page_config(layout="wide")
 
@@ -165,10 +167,15 @@ def plot_forecast(data, y_pred):
 
 ### App
 st.title('Previsão de Preços de Ações')
+st.markdown('Este aplicativo tem como objetivo realizar a previsão de preços de ações utilizando diferentes modelos de Machine Learning, além de utilizar um agente de IA Generativa para realizar pesquisas sobre a ação selecionada.')
 
 ### Input do usuário
 col1, _ = st.columns([1, 3])
 with col1:
+    st.info('Para utilizar o aplicativo, selecione um ativo e coloque sua API da OpenAI e SerpAPI.')
+    st.text_input("OpenAI API", type="password", value=OPEN_API_KEY)
+    st.text_input("SerpAPI API", type="password", value=SERPAPI_API_KEY)
+    
     df_ativos = investpy.stocks.get_stocks(country='brazil')
     tickers = df_ativos['symbol'].tolist()
     tickers = [ticker.strip() + '.SA' for ticker in tickers]
@@ -177,9 +184,9 @@ with col1:
 
 with st.spinner("Carregando pesquisas e previsões..."):
     ### Análise Fundamentalista
-    if ticker != 'Selecione um ticker':
-        # st.markdown('## Análise Fundamentalista')
-        # st.markdown(search_ticker_info(ticker))
+    if ticker != 'Selecione um ticker' and not OPEN_API_KEY and not SERPAPI_API_KEY:
+        st.markdown('## Análise Fundamentalista')
+        st.markdown(search_ticker_info(ticker))
         pass
 
     col1, col2, col3 = st.columns(3)
