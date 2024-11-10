@@ -5,6 +5,13 @@ Aplicação Streamlit que realiza a previsão de ações de empresas listadas na
 
 https://github.com/user-attachments/assets/7a463dec-8666-4a35-8ce9-7d5ad0ed57f5
 
+## Integrantes do Grupo
+
+- Ubiratan da Motta Filho R.A 20.00928-3
+- Joao Paulo M Socio 20.00704-3
+- Luan Teixeira R.A: 20.01681-6
+- Bruno Davidovitch Bertanha 20.01521-6
+
 ## Como executar o projeto
 1. Clone o repositório
 ```
