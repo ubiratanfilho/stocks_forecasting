@@ -12,6 +12,10 @@ https://github.com/user-attachments/assets/7a463dec-8666-4a35-8ce9-7d5ad0ed57f5
 - Luan Teixeira R.A: 20.01681-6
 - Bruno Davidovitch Bertanha 20.01521-6
 
+## Artigo
+
+https://ubiratanfilho.notion.site/Previs-o-de-A-es-13a57980942a80e0a19ccfacac90b51c 
+
 ## Como executar o projeto
 1. Clone o repositório
 ```
