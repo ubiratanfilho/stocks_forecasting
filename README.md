@@ -3,6 +3,8 @@
 ## Descrição do Projeto
 Aplicação Streamlit que realiza a previsão de ações de empresas listadas na B3, além de realizar uma análise fundamentalista da empresa com um agente de IA Generativa.
 
+https://github.com/user-attachments/assets/7a463dec-8666-4a35-8ce9-7d5ad0ed57f5
+
 ## Como executar o projeto
 1. Clone o repositório
 ```
