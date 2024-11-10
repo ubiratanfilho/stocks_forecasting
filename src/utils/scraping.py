@@ -37,5 +37,5 @@ for i in range(0, len(tickers), tamanho_lote):
         time.sleep(60)  # Esperar mais tempo em caso de erro
 
 # Salvar o dataset em um arquivo CSV
-dados_totais.to_csv('historico_acoes_b3.csv', index=False)
+dados_totais.to_csv('data/historico_acoes_b3.csv', index=False)
 print("Download concluído e dados salvos em 'historico_acoes_b3.csv'.") 
