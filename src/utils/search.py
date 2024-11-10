@@ -2,11 +2,6 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain.agents import initialize_agent, Tool
 from langchain_community.utilities import SerpAPIWrapper
-import streamlit as st
-
-# Variáveis globais
-OPEN_API_KEY = st.secrets["OPENAI_API_KEY"]
-SERPAPI_API_KEY = st.secrets["SERPAPI_API_KEY"]
 
 # Inicializar o modelo de linguagem da OpenAI
 llm = ChatOpenAI(model_name="gpt-4o-mini")
