@@ -24,8 +24,8 @@ git clone https://github.com/ubiratanfilho/stocks_forecasting
 
 2. Rode a imagem docker
 ```
-docker pull ubiratanfilho/stocks-forecasting:latest
-docker run -p 8502:8502 ubiratanfilho/stocks-forecasting:latest
+docker pull ubiratanmotta/stocks-forecasting:latest
+docker run -p 8502:8502 ubiratanmotta/stocks-forecasting:latest
 ```
 
 3. Acesse a aplicação no navegador
