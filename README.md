@@ -16,6 +16,10 @@ https://github.com/user-attachments/assets/7a463dec-8666-4a35-8ce9-7d5ad0ed57f5
 
 https://ubiratanfilho.notion.site/Previs-o-de-A-es-13a57980942a80e0a19ccfacac90b51c 
 
+## Vídeo explicativo
+
+https://www.youtube.com/watch?v=LE5hU6-_snw
+
 ## Como executar o projeto
 1. Clone o repositório
 ```
